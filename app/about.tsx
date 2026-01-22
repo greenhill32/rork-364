@@ -17,58 +17,62 @@ export default function AboutScreen() {
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
-      <View style={[styles.content, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.header}>
-          <View style={styles.decorativeLine} />
-          <Text style={styles.title}>364</Text>
-          <Text style={styles.subtitle}>WAYS TO SAY NO</Text>
-          <View style={styles.decorativeLine} />
+
+      <View style={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
+        <View style={styles.topContent}>
+          <View style={styles.header}>
+            <View style={styles.decorativeLine} />
+            <Text style={styles.title}>364</Text>
+            <Text style={styles.subtitle}>WAYS TO SAY NO</Text>
+            <View style={styles.decorativeLine} />
+          </View>
+
+          <View style={styles.descriptionContainer}>
+            <Text style={styles.description}>
+              For every day of the year except one, we provide you with the perfect excuse.
+            </Text>
+            <Text style={styles.description}>
+              Because sometimes &quot;no&quot; needs a little creativity.
+            </Text>
+          </View>
+
+          <View style={styles.featureContainer}>
+            <View style={styles.featureItem}>
+              <View style={styles.featureIcon}>
+                <Calendar size={24} color={Colors.gold} />
+              </View>
+              <Text style={styles.featureText}>Tap any day for inspiration</Text>
+            </View>
+
+            <View style={styles.featureItem}>
+              <View style={styles.sparkleIcon}>
+                <View style={styles.miniSparkle} />
+              </View>
+              <Text style={styles.featureText}>3 free excuses to start</Text>
+            </View>
+
+            <View style={styles.featureItem}>
+              <View style={styles.featureIcon}>
+                <Text style={styles.infinitySymbol}>∞</Text>
+              </View>
+              <Text style={styles.featureText}>Unlock all 364 with one purchase</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.descriptionContainer}>
-          <Text style={styles.description}>
-            For every day of the year except one, we provide you with the perfect excuse.
+        <View style={styles.bottomContent}>
+          <TouchableOpacity
+            style={styles.continueButton}
+            onPress={handleContinue}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.continueButtonText}>Begin</Text>
+          </TouchableOpacity>
+
+          <Text style={styles.footerText}>
+            Elegantly decline, every single time.
           </Text>
-          <Text style={styles.description}>
-            Because sometimes &quot;no&quot; needs a little creativity.
-          </Text>
         </View>
-
-        <View style={styles.featureContainer}>
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Calendar size={24} color={Colors.gold} />
-            </View>
-            <Text style={styles.featureText}>Tap any day for inspiration</Text>
-          </View>
-          
-          <View style={styles.featureItem}>
-            <View style={styles.sparkleIcon}>
-              <View style={styles.miniSparkle} />
-            </View>
-            <Text style={styles.featureText}>3 free excuses to start</Text>
-          </View>
-          
-          <View style={styles.featureItem}>
-            <View style={styles.featureIcon}>
-              <Text style={styles.infinitySymbol}>∞</Text>
-            </View>
-            <Text style={styles.featureText}>Unlock all 364 with one purchase</Text>
-          </View>
-        </View>
-
-        <TouchableOpacity 
-          style={styles.continueButton} 
-          onPress={handleContinue}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.continueButtonText}>Begin</Text>
-        </TouchableOpacity>
-
-        <Text style={styles.footerText}>
-          Elegantly decline, every single time.
-        </Text>
       </View>
     </View>
   );
@@ -82,18 +86,28 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: 30,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    flexDirection: 'column',
+  },
+  topContent: {
+    flex: 1,
+  },
+  bottomContent: {
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingVertical: 16,
   },
   header: {
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 0,
+    marginBottom: 20,
   },
   decorativeLine: {
     width: 60,
     height: 1,
     backgroundColor: Colors.gold,
     opacity: 0.5,
-    marginVertical: 12,
+    marginVertical: 8,
   },
   title: {
     fontSize: 72,
@@ -101,6 +115,7 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     fontStyle: 'italic',
     letterSpacing: -1,
+    fontFamily: 'Didot',
   },
   subtitle: {
     fontSize: 18,
@@ -108,10 +123,12 @@ const styles = StyleSheet.create({
     color: Colors.gold,
     letterSpacing: 6,
     marginTop: -5,
+    fontFamily: 'Didot',
   },
   descriptionContainer: {
     alignItems: 'center',
     paddingHorizontal: 10,
+    marginBottom: 24,
   },
   description: {
     fontSize: 16,
@@ -124,14 +141,14 @@ const styles = StyleSheet.create({
   featureContainer: {
     backgroundColor: Colors.cardBackground,
     borderRadius: 16,
-    padding: 24,
+    padding: 20,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   featureItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 8,
   },
   featureIcon: {
     width: 40,
@@ -173,6 +190,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 60,
     borderRadius: 30,
     alignSelf: 'center',
+    marginBottom: 16,
     shadowColor: Colors.gold,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

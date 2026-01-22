@@ -1,14 +1,16 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   ScrollView,
   Dimensions,
   Modal,
   Animated,
   Platform,
+  PanResponder,
+  GestureResponderEvent,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,7 +58,8 @@ export default function CalendarScreen() {
   const [showPurchaseModal, setShowPurchaseModal] = useState(false);
   const [showChangeLuckyDayModal, setShowChangeLuckyDayModal] = useState(false);
   const [isGoldQuote, setIsGoldQuote] = useState(false);
-  
+  const [visitedDays, setVisitedDays] = useState<Set<number>>(new Set());
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const triggerHaptic = useCallback(() => {
@@ -65,7 +68,7 @@ export default function CalendarScreen() {
     }
   }, []);
 
-  const handlePrevMonth = () => {
+  const handlePrevMonth = useCallback(() => {
     triggerHaptic();
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -73,9 +76,9 @@ export default function CalendarScreen() {
     } else {
       setCurrentMonth(currentMonth - 1);
     }
-  };
+  }, [currentMonth, currentYear, triggerHaptic]);
 
-  const handleNextMonth = () => {
+  const handleNextMonth = useCallback(() => {
     triggerHaptic();
     if (currentMonth === 11) {
       setCurrentMonth(0);
@@ -83,25 +86,46 @@ export default function CalendarScreen() {
     } else {
       setCurrentMonth(currentMonth + 1);
     }
-  };
+  }, [currentMonth, currentYear, triggerHaptic]);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderRelease: (evt: GestureResponderEvent, gestureState) => {
+        const { dx } = gestureState;
+        const threshold = 50;
+
+        if (dx > threshold) {
+          // Swiped right - go to previous month
+          handlePrevMonth();
+        } else if (dx < -threshold) {
+          // Swiped left - go to next month
+          handleNextMonth();
+        }
+      },
+    })
+  ).current;
 
   const handleDayPress = (day: number) => {
     triggerHaptic();
-    
+    // Add day to visited set (permanent greying)
+    setVisitedDays(prev => new Set(prev).add(day));
+
     const isGold = isLuckyDay(currentMonth, day);
-    
+
     if (isGold && !isPurchased) {
       setShowPurchaseModal(true);
       return;
     }
-    
+
     const result = handleTap(isGold);
-    
+
     if (result.needsPurchase) {
       setShowPurchaseModal(true);
       return;
     }
-    
+
     if (result.success && result.quote) {
       setIsGoldQuote(result.isGold);
       setShowQuoteModal(true);
@@ -159,6 +183,8 @@ export default function CalendarScreen() {
 
       const isGold = isLuckyDay(currentMonth, day);
 
+      const isVisited = visitedDays.has(day);
+
       days.push(
         <TouchableOpacity
           key={day}
@@ -166,6 +192,7 @@ export default function CalendarScreen() {
             styles.dayCell,
             isToday && !isGold && styles.todayCell,
             isGold && styles.goldDayCell,
+            isVisited && styles.clickedDayCell,
           ]}
           onPress={() => handleDayPress(day)}
           onLongPress={() => handleDayLongPress(day)}
@@ -176,6 +203,7 @@ export default function CalendarScreen() {
             styles.dayText,
             isToday && !isGold && styles.todayText,
             isGold && styles.goldDayText,
+            isVisited && styles.clickedDayText,
           ]}>
             {day}
           </Text>
@@ -188,9 +216,9 @@ export default function CalendarScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} {...panResponder.panHandlers}>
       <StatusBar style="light" />
-      
+
       <View style={[styles.content, { paddingTop: insets.top + 20 }]}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>364</Text>
@@ -393,12 +421,14 @@ const styles = StyleSheet.create({
     fontWeight: '300',
     color: Colors.gold,
     fontStyle: 'italic',
+    fontFamily: 'Didot',
   },
   headerSubtitle: {
     fontSize: 12,
     color: Colors.gold,
     letterSpacing: 4,
     opacity: 0.8,
+    fontFamily: 'Didot',
   },
   monthHeader: {
     flexDirection: 'row',
@@ -466,6 +496,12 @@ const styles = StyleSheet.create({
   goldDayText: {
     color: Colors.backgroundDark,
     fontWeight: '700',
+  },
+  clickedDayCell: {
+    opacity: 0.5,
+  },
+  clickedDayText: {
+    opacity: 0.6,
   },
   goldIndicator: {
     position: 'absolute',
