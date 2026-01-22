@@ -20,7 +20,7 @@ export default function SplashScreen() {
       <StatusBar style="light" />
       
       <Image
-        source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/wueyw9nn6u1t7ne52mi5w' }}
+        source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/r2vdio68iqd6vd81yamx5' }}
         style={styles.backgroundImage}
         resizeMode="cover"
       />
