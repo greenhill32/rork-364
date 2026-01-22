@@ -1,13 +1,14 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   Dimensions,
   Animated,
   Platform,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -152,64 +153,48 @@ export default function SpinWheelScreen() {
           One day of the year when &quot;no&quot; becomes &quot;yes&quot;
         </Text>
 
-        <View style={styles.wheelContainer}>
-          <Animated.View 
-            style={[
-              styles.wheel, 
-              { transform: [{ rotate: spinRotation }] }
-            ]}
-          >
-            <View style={styles.wheelInner}>
-              <Animated.View style={[styles.wheelGlow, { opacity: glowOpacity }]} />
-              <View style={styles.dateDisplay}>
-                <View style={styles.dateRow}>
-                  <TouchableOpacity 
-                    onPress={() => handleMonthChange('prev')} 
-                    style={styles.arrowButton}
-                    disabled={isSpinning}
-                  >
-                    <Text style={styles.arrowText}>‹</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.monthText}>{MONTHS[selectedMonth]}</Text>
-                  <TouchableOpacity 
-                    onPress={() => handleMonthChange('next')} 
-                    style={styles.arrowButton}
-                    disabled={isSpinning}
-                  >
-                    <Text style={styles.arrowText}>›</Text>
-                  </TouchableOpacity>
-                </View>
-                
-                <View style={styles.dateRow}>
-                  <TouchableOpacity 
-                    onPress={() => handleDayChange('prev')} 
-                    style={styles.arrowButton}
-                    disabled={isSpinning}
-                  >
-                    <Text style={styles.arrowText}>‹</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.dayText}>{selectedDay}</Text>
-                  <TouchableOpacity 
-                    onPress={() => handleDayChange('next')} 
-                    style={styles.arrowButton}
-                    disabled={isSpinning}
-                  >
-                    <Text style={styles.arrowText}>›</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Animated.View>
+        <View style={styles.pickersContainer}>
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={selectedMonth}
+              onValueChange={(value) => {
+                setSelectedMonth(value);
+                const maxDays = getDaysInMonth(value, currentYear);
+                if (selectedDay > maxDays) {
+                  setSelectedDay(maxDays);
+                }
+              }}
+              style={styles.picker}
+              itemStyle={styles.pickerItem}
+            >
+              {MONTHS.map((month, index) => (
+                <Picker.Item key={index} label={month} value={index} />
+              ))}
+            </Picker>
+          </View>
+
+          <View style={styles.pickerWrapper}>
+            <Picker
+              selectedValue={selectedDay}
+              onValueChange={setSelectedDay}
+              style={styles.picker}
+              itemStyle={styles.pickerItem}
+            >
+              {Array.from({ length: daysInSelectedMonth }, (_, i) => i + 1).map((day) => (
+                <Picker.Item key={day} label={String(day)} value={day} />
+              ))}
+            </Picker>
+          </View>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.spinButton, isSpinning && styles.spinButtonDisabled]} 
+        <TouchableOpacity
+          style={[styles.spinButton, isSpinning && styles.spinButtonDisabled]}
           onPress={handleSpin}
           activeOpacity={0.8}
           disabled={isSpinning}
         >
           <Text style={styles.spinButtonText}>
-            {isSpinning ? 'Spinning...' : 'Spin to Randomize'}
+            {isSpinning ? 'Spinning...' : 'Randomize'}
           </Text>
         </TouchableOpacity>
 
@@ -267,73 +252,30 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     fontStyle: 'italic',
   },
-  wheelContainer: {
-    width: WHEEL_SIZE,
-    height: WHEEL_SIZE,
-    justifyContent: 'center',
-    alignItems: 'center',
+  pickersContainer: {
+    width: '100%',
+    height: 250,
     marginBottom: 30,
-  },
-  wheel: {
-    width: WHEEL_SIZE,
-    height: WHEEL_SIZE,
-    borderRadius: WHEEL_SIZE / 2,
-    borderWidth: 3,
-    borderColor: Colors.gold,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 16,
+    overflow: 'hidden',
     backgroundColor: Colors.cardBackground,
-  },
-  wheelInner: {
-    width: WHEEL_SIZE - 40,
-    height: WHEEL_SIZE - 40,
-    borderRadius: (WHEEL_SIZE - 40) / 2,
     borderWidth: 1,
     borderColor: Colors.border,
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  pickerWrapper: {
+    flex: 1,
+    borderRightWidth: 1,
+    borderColor: Colors.border,
+  },
+  picker: {
+    flex: 1,
     backgroundColor: Colors.backgroundDark,
   },
-  wheelGlow: {
-    position: 'absolute',
-    width: WHEEL_SIZE - 60,
-    height: WHEEL_SIZE - 60,
-    borderRadius: (WHEEL_SIZE - 60) / 2,
-    backgroundColor: Colors.gold,
-    opacity: 0.1,
-  },
-  dateDisplay: {
-    alignItems: 'center',
-  },
-  dateRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  arrowButton: {
-    width: 44,
-    height: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  arrowText: {
-    fontSize: 32,
+  pickerItem: {
     color: Colors.gold,
-    fontWeight: '300',
-  },
-  monthText: {
-    fontSize: 28,
+    fontSize: 20,
     fontWeight: '500',
-    color: Colors.cream,
-    width: 80,
-    textAlign: 'center',
-  },
-  dayText: {
-    fontSize: 56,
-    fontWeight: '300',
-    color: Colors.gold,
-    width: 80,
-    textAlign: 'center',
   },
   spinButton: {
     backgroundColor: 'transparent',
