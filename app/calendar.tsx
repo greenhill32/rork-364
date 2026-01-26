@@ -425,6 +425,7 @@ const styles = StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 12,
+    fontWeight: '600',
     color: Colors.gold,
     letterSpacing: 4,
     opacity: 0.8,
