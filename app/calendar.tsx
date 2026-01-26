@@ -424,8 +424,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Didot',
   },
   headerSubtitle: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '900',
     color: Colors.gold,
     letterSpacing: 4,
     opacity: 0.8,
