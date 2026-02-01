@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,8 +18,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight, X, Lock, RotateCcw, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { Asset } from 'expo-asset';
 import Colors from '@/constants/colors';
 import { useApp } from '@/context/AppContext';
+
+// Preload the wink GIF asset
+const winkGifAsset = require('@/assets/images/wink.gif');
 
 const { width, height } = Dimensions.get('window');
 const DAY_SIZE = (width - 60) / 7;
@@ -64,8 +68,40 @@ export default function CalendarScreen() {
   const [showChangeLuckyDayModal, setShowChangeLuckyDayModal] = useState(false);
   const [isGoldQuote, setIsGoldQuote] = useState(false);
   const [visitedDays, setVisitedDays] = useState<Set<number>>(new Set());
+  const [gifLoaded, setGifLoaded] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const gifFadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Preload GIF on mount
+  useEffect(() => {
+    const preloadGif = async () => {
+      try {
+        await Asset.loadAsync(winkGifAsset);
+        setGifLoaded(true);
+      } catch (e) {
+        console.log('[Calendar] GIF preload failed, will load on demand');
+      }
+    };
+    preloadGif();
+
+    // Start shimmer animation (runs continuously as fallback)
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const triggerHaptic = useCallback(() => {
     if (Platform.OS !== 'web') {
@@ -175,6 +211,7 @@ export default function CalendarScreen() {
     setShowQuoteModal(false);
     setCurrentQuote(null);
     setIsGoldQuote(false);
+    gifFadeAnim.setValue(0); // Reset for next open
   };
 
   const renderCalendarDays = () => {
@@ -356,10 +393,42 @@ export default function CalendarScreen() {
 
           {/* Centered content */}
           <View style={styles.goldContentContainer}>
-            <Image
-              source={require('@/assets/images/wink.gif')}
-              style={styles.goldWinkGif}
-            />
+            
+            {/* GIF container with shimmer fallback */}
+            <View style={styles.gifContainer}>
+              {/* Shimmer placeholder - shows while GIF loads */}
+              <Animated.View 
+                style={[
+                  styles.shimmerPlaceholder,
+                  {
+                    opacity: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.8],
+                    }),
+                  },
+                ]}
+              >
+                <View style={styles.shimmerInner}>
+                  <Text style={styles.shimmerEmoji}>😈</Text>
+                </View>
+              </Animated.View>
+
+              {/* Actual GIF - fades in on load */}
+              <Animated.View style={[styles.gifWrapper, { opacity: gifFadeAnim }]}>
+                <Image
+                  source={winkGifAsset}
+                  style={styles.goldWinkGif}
+                  onLoad={() => {
+                    // Fade in quickly once loaded
+                    Animated.timing(gifFadeAnim, {
+                      toValue: 1,
+                      duration: 150,
+                      useNativeDriver: true,
+                    }).start();
+                  }}
+                />
+              </Animated.View>
+            </View>
 
             <View style={styles.quoteDecorator}>
               <View style={styles.decorLine} />
@@ -694,9 +763,43 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   goldWinkGif: {
-    width: 300, // Larger for full screen
-    height: 300,
+    width: 180, // Larger for full screen
+    height: 180,
+  },
+  gifContainer: {
+    width: 180,
+    height: 180,
     marginBottom: 30,
+    position: 'relative',
+  },
+  gifWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 180,
+    height: 180,
+  },
+  shimmerPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: Colors.gold,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shimmerInner: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    backgroundColor: Colors.backgroundDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shimmerEmoji: {
+    fontSize: 64,
   },
   goldFullScreenQuoteText: {
     fontSize: 32, // Bigger text for full screen
