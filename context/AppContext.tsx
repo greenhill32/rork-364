@@ -140,7 +140,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
   }, []);
 
   const resetForTesting = useCallback(async () => {
-    setIsPurchased(false);
+    setIsPurchased(true);
     setTapCount(0);
     setUsedPoolAIndices([]);
     setUsedPoolBIndices([]);
