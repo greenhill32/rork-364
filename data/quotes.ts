@@ -8,6 +8,6 @@ export const POOL_B_QUOTES = [
   "I have a headache.",
 ];
 
-export const GOLD_QUOTE = "Tonight's the night, baby 😈";
+export const GOLD_QUOTE = "Tonight's the night baby";
 
 export const FREE_TAP_LIMIT = 3;

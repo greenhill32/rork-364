@@ -59,7 +59,7 @@ export default function AboutScreen() {
             </View>
           </View>
         </View>
-~
+
         <View style={styles.bottomContent}>
           <TouchableOpacity
             style={styles.continueButton}
