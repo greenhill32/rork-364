@@ -45,6 +45,7 @@ export default function CalendarScreen() {
     isPurchased, 
     currentQuote, 
     remainingFreeTaps, 
+    allTimeSeenCount,
     handleTap, 
     purchase,
     setPaidForTesting,
@@ -237,6 +238,9 @@ export default function CalendarScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>364</Text>
           <Text style={styles.headerSubtitle}>WAYS TO SAY NO</Text>
+          <Text style={styles.progressText} testID="quotes-progress">
+            {Math.min(364, Math.max(0, allTimeSeenCount))}/364
+          </Text>
         </View>
 
         <View style={styles.monthHeader}>
@@ -484,6 +488,13 @@ const styles = StyleSheet.create({
     letterSpacing: 4,
     opacity: 0.8,
     fontFamily: 'Didot',
+  },
+  progressText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: Colors.gold,
+    opacity: 0.5,
+    letterSpacing: 1,
   },
   monthHeader: {
     flexDirection: 'row',
