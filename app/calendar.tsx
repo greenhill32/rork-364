@@ -763,8 +763,8 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   goldWinkGif: {
-    width: 400, // Larger for full screen
-    height: 400,
+    width: 300, // Larger for full screen
+    height: 300,
   },
   gifContainer: {
     width: 180,
