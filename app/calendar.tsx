@@ -16,7 +16,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ChevronLeft, ChevronRight, X, Lock, RotateCcw } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, X, Lock, RotateCcw, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useApp } from '@/context/AppContext';
@@ -225,6 +225,16 @@ export default function CalendarScreen() {
 
       <View style={[styles.content, { paddingTop: insets.top + 20 }]}>
         <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => {
+              triggerHaptic();
+              router.push('/settings');
+            }}
+            activeOpacity={0.7}
+          >
+            <Settings size={24} color={Colors.gold} />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>364</Text>
           <Text style={styles.headerSubtitle}>WAYS TO SAY NO</Text>
         </View>
@@ -451,6 +461,14 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 20,
+    position: 'relative',
+  },
+  settingsButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    padding: 8,
+    zIndex: 10,
   },
   headerTitle: {
     fontSize: 36,

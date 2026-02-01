@@ -14,7 +14,7 @@ import {
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useApp } from '@/context/AppContext';
@@ -171,6 +171,16 @@ export default function SpinWheelScreen() {
       {/* Main Calendar Content */}
       <View style={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
         <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => {
+              triggerHaptic();
+              router.push('/settings');
+            }}
+            activeOpacity={0.7}
+          >
+            <Settings size={24} color={Colors.gold} />
+          </TouchableOpacity>
           <View style={styles.decorativeLine} />
           <Text style={styles.title}>Pick Your</Text>
           <Text style={styles.titleGold}>Lucky Day</Text>
@@ -257,6 +267,14 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 16,
+    position: 'relative',
+  },
+  settingsButton: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    padding: 8,
+    zIndex: 10,
   },
   decorativeLine: {
     width: 60,

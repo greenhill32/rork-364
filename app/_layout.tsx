@@ -23,6 +23,7 @@ function RootLayoutNav() {
       <Stack.Screen name="about" />
       <Stack.Screen name="spin-wheel" />
       <Stack.Screen name="calendar" />
+      <Stack.Screen name="settings" />
     </Stack>
   );
 }
