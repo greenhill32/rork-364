@@ -776,8 +776,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 180,
-    height: 180,
+    width: 300,
+    height: 300,
   },
   shimmerPlaceholder: {
     position: 'absolute',
