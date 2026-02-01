@@ -4,11 +4,11 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Calendar } from 'lucide-react-native';
 import Colors from '@/constants/colors';
-
-
+import { useApp } from '@/context/AppContext';
 
 export default function AboutScreen() {
   const insets = useSafeAreaInsets();
+  const { devForcePurchased, hasRealPurchase, setPaidForTesting } = useApp();
 
   const handleContinue = () => {
     router.replace('/spin-wheel');
@@ -61,6 +61,32 @@ export default function AboutScreen() {
         </View>
 
         <View style={styles.bottomContent}>
+          {__DEV__ && (
+            <View style={styles.devRow} testID="dev-paid-flag-row">
+              <View style={styles.devRowLeft}>
+                <Text style={styles.devRowTitle}>Paid flag (testing)</Text>
+                <Text style={styles.devRowSubtitle}>
+                  {hasRealPurchase ? 'Real purchase active' : devForcePurchased ? 'Forced ON' : 'Forced OFF'}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.devPill, devForcePurchased && styles.devPillActive]}
+                onPress={async () => {
+                  const next = !devForcePurchased;
+                  console.log('[About] Toggling paid flag (testing)', { next });
+                  await setPaidForTesting(next);
+                }}
+                activeOpacity={0.85}
+                testID="dev-toggle-paid-flag"
+              >
+                <Text style={[styles.devPillText, devForcePurchased && styles.devPillTextActive]}>
+                  {devForcePurchased ? 'ON' : 'OFF'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           <TouchableOpacity
             style={styles.continueButton}
             onPress={handleContinue}
@@ -209,5 +235,59 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.7,
     fontStyle: 'italic',
+  },
+  devRow: {
+    width: '100%',
+    maxWidth: 420,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 230, 211, 0.12)',
+    backgroundColor: 'rgba(42, 15, 42, 0.55)',
+    marginBottom: 14,
+  },
+  devRowLeft: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  devRowTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.cream,
+    letterSpacing: 0.2,
+  },
+  devRowSubtitle: {
+    marginTop: 3,
+    fontSize: 12,
+    color: Colors.cream,
+    opacity: 0.65,
+  },
+  devPill: {
+    minWidth: 64,
+    height: 34,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(212, 175, 55, 0.35)',
+    backgroundColor: 'rgba(212, 175, 55, 0.10)',
+  },
+  devPillActive: {
+    borderColor: 'rgba(212, 175, 55, 0.8)',
+    backgroundColor: 'rgba(212, 175, 55, 0.18)',
+  },
+  devPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.1,
+    color: Colors.gold,
+  },
+  devPillTextActive: {
+    color: Colors.goldLight,
   },
 });
