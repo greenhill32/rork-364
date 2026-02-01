@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>364 Ways to Say No</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --plum: #4a1942;
+            --plum-dark: #2d0f28;
+            --plum-light: #6b2a5f;
+            --gold: #d4a853;
+            --gold-light: #e8c97a;
+            --gold-pale: #f5e6c8;
+            --cream: #faf6f0;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background: linear-gradient(180deg, var(--plum-dark) 0%, var(--plum) 50%, var(--plum-dark) 100%);
+            min-height: 100vh;
+            color: var(--gold-pale);
+            overflow-x: hidden;
+        }
+
+        /* Texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Art Deco decorative elements */
+        .deco-line {
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 20px 0;
+        }
+
+        .deco-diamond {
+            width: 12px;
+            height: 12px;
+            background: var(--gold);
+            transform: rotate(45deg);
+            margin: 0 auto;
+        }
+
+        /* Curtain frame effect */
+        .curtain-left, .curtain-right {
+            position: fixed;
+            top: 0;
+            width: 80px;
+            height: 100%;
+            background: linear-gradient(90deg, var(--plum-dark), transparent);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .curtain-left {
+            left: 0;
+            border-right: 3px solid var(--gold);
+            opacity: 0.6;
+        }
+
+        .curtain-right {
+            right: 0;
+            background: linear-gradient(-90deg, var(--plum-dark), transparent);
+            border-left: 3px solid var(--gold);
+            opacity: 0.6;
+        }
+
+        /* Header / Hero */
+        .hero {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+
+        .hero-number {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(80px, 20vw, 160px);
+            font-weight: 400;
+            color: var(--gold);
+            line-height: 1;
+            text-shadow: 0 4px 20px rgba(212, 168, 83, 0.3);
+            letter-spacing: -0.02em;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: 400;
+            color: var(--gold-light);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-top: 15px;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            font-style: italic;
+            color: var(--gold-pale);
+            margin-top: 30px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        /* Sparkle effect */
+        .sparkle {
+            display: inline-block;
+            color: var(--gold-light);
+            animation: sparkle 2s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        /* Main content */
+        .content {
+            text-align: center;
+            padding: 40px 20px;
+            max-width: 600px;
+        }
+
+        .tagline {
+            font-size: 22px;
+            line-height: 1.7;
+            color: var(--cream);
+            font-weight: 300;
+        }
+
+        .tagline em {
+            color: var(--gold-light);
+            font-style: italic;
+        }
+
+        /* CTA Button */
+        .cta-section {
+            margin: 50px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 50px;
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--plum-dark);
+            background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-light));
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(212, 168, 83, 0.4);
+        }
+
+        .cta-button::before,
+        .cta-button::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gold);
+        }
+
+        .cta-button::before {
+            top: -8px;
+            left: -8px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .cta-button::after {
+            bottom: -8px;
+            right: -8px;
+            border-left: none;
+            border-top: none;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(212, 168, 83, 0.5);
+            background: linear-gradient(135deg, var(--gold), var(--gold-light), var(--gold));
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+            padding: 0 20px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            color: var(--gold);
+            margin-bottom: 15px;
+        }
+
+        .feature h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: var(--gold-light);
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+
+        .feature p {
+            font-size: 16px;
+            color: var(--gold-pale);
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding: 40px 20px;
+            text-align: center;
+            width: 100%;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .footer-links a {
+            color: var(--gold);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+            position: relative;
+        }
+
+        .footer-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: var(--gold);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        .footer-links a:hover::after {
+            transform: scaleX(1);
+        }
+
+        .copyright {
+            font-size: 13px;
+            color: var(--gold-pale);
+            opacity: 0.5;
+        }
+
+        /* Art Deco corner ornaments */
+        .corner-ornament {
+            position: fixed;
+            width: 60px;
+            height: 60px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .corner-ornament svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .corner-tl { top: 20px; left: 20px; }
+        .corner-tr { top: 20px; right: 20px; transform: scaleX(-1); }
+        .corner-bl { bottom: 20px; left: 20px; transform: scaleY(-1); }
+        .corner-br { bottom: 20px; right: 20px; transform: scale(-1, -1); }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .curtain-left, .curtain-right {
+                width: 30px;
+            }
+
+            .corner-ornament {
+                width: 40px;
+                height: 40px;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .hero {
+                padding: 40px 0 20px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Decorative curtain edges -->
+    <div class="curtain-left"></div>
+    <div class="curtain-right"></div>
+
+    <!-- Corner ornaments -->
+    <div class="corner-ornament corner-tl">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0 L60 0 L60 8 L8 8 L8 60 L0 60 Z" fill="#d4a853" opacity="0.6"/>
+            <path d="M15 15 L40 15 L40 20 L20 20 L20 40 L15 40 Z" fill="#d4a853" opacity="0.4"/>
+        </svg>
+    </div>
+    <div class="corner-ornament corner-tr">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0 L60 0 L60 8 L8 8 L8 60 L0 60 Z" fill="#d4a853" opacity="0.6"/>
+            <path d="M15 15 L40 15 L40 20 L20 20 L20 40 L15 40 Z" fill="#d4a853" opacity="0.4"/>
+        </svg>
+    </div>
+    <div class="corner-ornament corner-bl">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0 L60 0 L60 8 L8 8 L8 60 L0 60 Z" fill="#d4a853" opacity="0.6"/>
+            <path d="M15 15 L40 15 L40 20 L20 20 L20 40 L15 40 Z" fill="#d4a853" opacity="0.4"/>
+        </svg>
+    </div>
+    <div class="corner-ornament corner-br">
+        <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0 0 L60 0 L60 8 L8 8 L8 60 L0 60 Z" fill="#d4a853" opacity="0.6"/>
+            <path d="M15 15 L40 15 L40 20 L20 20 L20 40 L15 40 Z" fill="#d4a853" opacity="0.4"/>
+        </svg>
+    </div>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-number">364</div>
+            <h1 class="hero-title">Ways to Say No</h1>
+            <div class="deco-line"></div>
+            <p class="hero-subtitle">The art of the graceful decline <span class="sparkle">✦</span></p>
+        </section>
+
+        <!-- Main Content -->
+        <section class="content">
+            <p class="tagline">
+                Because sometimes <em>"No"</em> is a complete sentence.<br>
+                And sometimes, darling, it deserves a little more <em>flair</em>.
+            </p>
+        </section>
+
+        <!-- CTA -->
+        <section class="cta-section">
+            <a href="#" class="cta-button">Coming Soon</a>
+        </section>
+
+        <!-- Features -->
+        <section class="features">
+            <div class="feature">
+                <div class="feature-icon">✦</div>
+                <h3>Elegant Refusals</h3>
+                <p>From polite deflections to dramatic exits</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✦</div>
+                <h3>Daily Inspiration</h3>
+                <p>A new way to decline, every single day</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">✦</div>
+                <h3>Share the Art</h3>
+                <p>Send the perfect "no" to those who need it</p>
+            </div>
+        </section>
+
+        <div class="deco-line"></div>
+        <div class="deco-diamond"></div>
+
+        <!-- Footer -->
+        <footer>
+            <nav class="footer-links">
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Service</a>
+                <a href="mailto:greenhill32@hotmail.com">Contact</a>
+            </nav>
+            <p class="copyright">&copy; 2025 364 Ways to Say No. All rights reserved.</p>
+        </footer>
+    </div>
+</body>
+</html>
