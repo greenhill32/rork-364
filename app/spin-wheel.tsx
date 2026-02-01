@@ -4,116 +4,93 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
   Dimensions,
   Animated,
   Platform,
+  Image,
+  Modal,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ChevronLeft, ChevronRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import Colors from '@/constants/colors';
 import { useApp } from '@/context/AppContext';
 
 const { width } = Dimensions.get('window');
-const WHEEL_SIZE = width * 0.75;
+const DAY_SIZE = (width - 60) / 7;
 
 const MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
 ];
+
+const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 function getDaysInMonth(month: number, year: number): number {
   return new Date(year, month + 1, 0).getDate();
 }
 
+function getFirstDayOfMonth(month: number, year: number): number {
+  return new Date(year, month, 1).getDay();
+}
+
 export default function SpinWheelScreen() {
   const insets = useSafeAreaInsets();
   const { setLuckyDay } = useApp();
-  
+
   const currentYear = new Date().getFullYear();
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedDay, setSelectedDay] = useState(new Date().getDate());
-  const [isSpinning, setIsSpinning] = useState(false);
-  
-  const spinAnim = useRef(new Animated.Value(0)).current;
-  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  const prevArrowAnim = useRef(new Animated.Value(0)).current;
+  const nextArrowAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [showSplashCeremony, setShowSplashCeremony] = useState(false);
 
   const triggerHaptic = useCallback(() => {
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
   }, []);
 
-  const daysInSelectedMonth = getDaysInMonth(selectedMonth, currentYear);
+  const animateArrow = (animValue: Animated.Value, direction: 'left' | 'right') => {
+    const startValue = direction === 'left' ? 0 : 10;
+    const endValue = direction === 'left' ? -10 : 0;
 
-  const handleSpin = () => {
-    if (isSpinning) return;
-    
-    setIsSpinning(true);
-    triggerHaptic();
-
-    const randomMonth = Math.floor(Math.random() * 12);
-    const daysInMonth = getDaysInMonth(randomMonth, currentYear);
-    const randomDay = Math.floor(Math.random() * daysInMonth) + 1;
-
-    Animated.sequence([
-      Animated.timing(spinAnim, {
-        toValue: 5,
-        duration: 2000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(spinAnim, {
-        toValue: 0,
-        duration: 0,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setSelectedMonth(randomMonth);
-      setSelectedDay(randomDay);
-      setIsSpinning(false);
-      
-      if (Platform.OS !== 'web') {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(glowAnim, {
-            toValue: 1,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-          Animated.timing(glowAnim, {
-            toValue: 0,
-            duration: 800,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-    });
+    animValue.setValue(startValue);
+    Animated.timing(animValue, {
+      toValue: endValue,
+      duration: 100,
+      useNativeDriver: true,
+    }).start();
   };
 
-  const handleMonthChange = (direction: 'prev' | 'next') => {
+  const handlePrevMonth = useCallback(() => {
     triggerHaptic();
-    const newMonth = direction === 'prev' 
-      ? (selectedMonth === 0 ? 11 : selectedMonth - 1)
-      : (selectedMonth === 11 ? 0 : selectedMonth + 1);
-    setSelectedMonth(newMonth);
-    const maxDays = getDaysInMonth(newMonth, currentYear);
-    if (selectedDay > maxDays) {
-      setSelectedDay(maxDays);
+    animateArrow(prevArrowAnim, 'left');
+    if (selectedMonth === 0) {
+      setSelectedMonth(11);
+    } else {
+      setSelectedMonth(selectedMonth - 1);
     }
-  };
+  }, [selectedMonth, triggerHaptic]);
 
-  const handleDayChange = (direction: 'prev' | 'next') => {
+  const handleNextMonth = useCallback(() => {
     triggerHaptic();
-    const maxDays = daysInSelectedMonth;
-    const newDay = direction === 'prev'
-      ? (selectedDay === 1 ? maxDays : selectedDay - 1)
-      : (selectedDay === maxDays ? 1 : selectedDay + 1);
-    setSelectedDay(newDay);
+    animateArrow(nextArrowAnim, 'right');
+    if (selectedMonth === 11) {
+      setSelectedMonth(0);
+    } else {
+      setSelectedMonth(selectedMonth + 1);
+    }
+  }, [selectedMonth, triggerHaptic]);
+
+  const handleDayPress = (day: number) => {
+    triggerHaptic();
+    setSelectedDay(day);
   };
 
   const handleConfirm = () => {
@@ -124,24 +101,75 @@ export default function SpinWheelScreen() {
       year: currentYear,
     };
     setLuckyDay(luckyDate);
-    router.replace('/calendar');
+
+    // Fade out to purple
+    fadeAnim.setValue(0);
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      // Show splash screen briefly
+      setShowSplashCeremony(true);
+
+      // After 350ms, start fading and navigate
+      setTimeout(() => {
+        // Navigate while still at full opacity
+        router.replace('/calendar');
+
+        // Then fade out the overlay
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 900,
+          useNativeDriver: true,
+        }).start(() => {
+          setShowSplashCeremony(false);
+        });
+      }, 350);
+    });
   };
 
-  const spinRotation = spinAnim.interpolate({
-    inputRange: [0, 5],
-    outputRange: ['0deg', '1800deg'],
-  });
+  const renderCalendarDays = () => {
+    const daysInMonth = getDaysInMonth(selectedMonth, currentYear);
+    const firstDay = getFirstDayOfMonth(selectedMonth, currentYear);
+    const days: React.ReactElement[] = [];
 
-  const glowOpacity = glowAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.3, 1],
-  });
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<View key={`empty-${i}`} style={styles.dayCell} />);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const isSelected = day === selectedDay;
+
+      days.push(
+        <TouchableOpacity
+          key={day}
+          style={[
+            styles.dayCell,
+            isSelected && styles.selectedDayCell,
+          ]}
+          onPress={() => handleDayPress(day)}
+          activeOpacity={0.7}
+        >
+          <Text style={[
+            styles.dayText,
+            isSelected && styles.selectedDayText,
+          ]}>
+            {day}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+
+    return days;
+  };
 
   return (
     <View style={styles.container}>
       <StatusBar style="light" />
-      
-      <View style={[styles.content, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 20 }]}>
+
+      {/* Main Calendar Content */}
+      <View style={[styles.content, { paddingTop: insets.top + 20, paddingBottom: insets.bottom + 20 }]}>
         <View style={styles.header}>
           <View style={styles.decorativeLine} />
           <Text style={styles.title}>Pick Your</Text>
@@ -153,60 +181,65 @@ export default function SpinWheelScreen() {
           One day of the year when &quot;no&quot; becomes &quot;yes&quot;
         </Text>
 
-        <View style={styles.pickersContainer}>
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={selectedMonth}
-              onValueChange={(value) => {
-                setSelectedMonth(value);
-                const maxDays = getDaysInMonth(value, currentYear);
-                if (selectedDay > maxDays) {
-                  setSelectedDay(maxDays);
-                }
-              }}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-            >
-              {MONTHS.map((month, index) => (
-                <Picker.Item key={index} label={month} value={index} />
-              ))}
-            </Picker>
-          </View>
+        <View style={styles.monthHeader}>
+          <Animated.View style={{ transform: [{ translateX: prevArrowAnim }] }}>
+            <TouchableOpacity onPress={handlePrevMonth} style={styles.navButton}>
+              <ChevronLeft size={28} color={Colors.gold} />
+            </TouchableOpacity>
+          </Animated.View>
 
-          <View style={styles.pickerWrapper}>
-            <Picker
-              selectedValue={selectedDay}
-              onValueChange={setSelectedDay}
-              style={styles.picker}
-              itemStyle={styles.pickerItem}
-            >
-              {Array.from({ length: daysInSelectedMonth }, (_, i) => i + 1).map((day) => (
-                <Picker.Item key={day} label={String(day)} value={day} />
-              ))}
-            </Picker>
-          </View>
+          <Text style={styles.monthText}>
+            {MONTHS[selectedMonth]} {currentYear}
+          </Text>
+
+          <Animated.View style={{ transform: [{ translateX: nextArrowAnim }] }}>
+            <TouchableOpacity onPress={handleNextMonth} style={styles.navButton}>
+              <ChevronRight size={28} color={Colors.gold} />
+            </TouchableOpacity>
+          </Animated.View>
         </View>
 
-        <TouchableOpacity
-          style={[styles.spinButton, isSpinning && styles.spinButtonDisabled]}
-          onPress={handleSpin}
-          activeOpacity={0.8}
-          disabled={isSpinning}
-        >
-          <Text style={styles.spinButtonText}>
-            {isSpinning ? 'Spinning...' : 'Randomize'}
-          </Text>
-        </TouchableOpacity>
+        <View style={styles.weekdaysRow}>
+          {WEEKDAYS.map((day, index) => (
+            <View key={index} style={styles.weekdayCell}>
+              <Text style={styles.weekdayText}>{day}</Text>
+            </View>
+          ))}
+        </View>
 
-        <TouchableOpacity 
-          style={styles.confirmButton} 
+        <ScrollView
+          style={styles.calendarScroll}
+          contentContainerStyle={styles.calendarGrid}
+          showsVerticalScrollIndicator={false}
+        >
+          {renderCalendarDays()}
+        </ScrollView>
+
+        <TouchableOpacity
+          style={styles.confirmButton}
           onPress={handleConfirm}
           activeOpacity={0.8}
-          disabled={isSpinning}
         >
           <Text style={styles.confirmButtonText}>Confirm Selection</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Ceremony Transition Overlay - sits on top */}
+      <Animated.View
+        style={[
+          styles.fadeOverlay,
+          { opacity: fadeAnim },
+        ]}
+        pointerEvents="none"
+      >
+        {showSplashCeremony && (
+          <Image
+            source={require('@/assets/images/364-splash.png')}
+            style={styles.splashImage}
+            resizeMode="cover"
+          />
+        )}
+      </Animated.View>
     </View>
   );
 }
@@ -218,8 +251,8 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 30,
-    alignItems: 'center',
+    paddingHorizontal: 20,
+    zIndex: 1,
   },
   header: {
     alignItems: 'center',
@@ -249,51 +282,68 @@ const styles = StyleSheet.create({
     color: Colors.cream,
     textAlign: 'center',
     opacity: 0.7,
-    marginBottom: 30,
+    marginBottom: 20,
     fontStyle: 'italic',
   },
-  pickersContainer: {
-    width: '100%',
-    height: 250,
-    marginBottom: 30,
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: Colors.cardBackground,
-    borderWidth: 1,
-    borderColor: Colors.border,
+  monthHeader: {
     flexDirection: 'row',
-  },
-  pickerWrapper: {
-    flex: 1,
-    borderRightWidth: 1,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     borderColor: Colors.border,
+    marginBottom: 12,
   },
-  picker: {
-    flex: 1,
-    backgroundColor: Colors.backgroundDark,
+  navButton: {
+    padding: 8,
   },
-  pickerItem: {
-    color: Colors.gold,
+  monthText: {
     fontSize: 20,
     fontWeight: '500',
-  },
-  spinButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: Colors.gold,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 30,
-    marginBottom: 16,
-  },
-  spinButtonDisabled: {
-    opacity: 0.5,
-  },
-  spinButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.gold,
+    color: Colors.cream,
     letterSpacing: 1,
+  },
+  weekdaysRow: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderColor: Colors.border,
+  },
+  weekdayCell: {
+    width: DAY_SIZE,
+    alignItems: 'center',
+  },
+  weekdayText: {
+    fontSize: 13,
+    color: Colors.gold,
+    fontWeight: '600',
+  },
+  calendarScroll: {
+    flex: 1,
+  },
+  calendarGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingVertical: 10,
+  },
+  dayCell: {
+    width: DAY_SIZE,
+    height: DAY_SIZE,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  selectedDayCell: {
+    backgroundColor: Colors.gold,
+    borderRadius: DAY_SIZE / 2,
+  },
+  dayText: {
+    fontSize: 16,
+    color: Colors.cream,
+  },
+  selectedDayText: {
+    color: Colors.backgroundDark,
+    fontWeight: '700',
   },
   confirmButton: {
     backgroundColor: Colors.gold,
@@ -305,11 +355,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+    alignSelf: 'center',
+    marginTop: 8,
   },
   confirmButtonText: {
     fontSize: 18,
     fontWeight: '600',
     color: Colors.backgroundDark,
     letterSpacing: 2,
+  },
+  fadeOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: Colors.background,
+    zIndex: 999,
+  },
+  splashImage: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
   },
 });
