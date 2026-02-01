@@ -246,7 +246,6 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingBottom: 12,
-    borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
   headerRow: {
