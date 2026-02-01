@@ -65,6 +65,8 @@ export default function CalendarScreen() {
   const [isGoldQuote, setIsGoldQuote] = useState(false);
   const [visitedDays, setVisitedDays] = useState<Set<number>>(new Set());
 
+  const isGoldFullScreen = isGoldQuote && isPurchased;
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const triggerHaptic = useCallback(() => {
@@ -333,15 +335,28 @@ export default function CalendarScreen() {
         animationType="fade"
         onRequestClose={closeQuoteModal}
       >
-        <View style={styles.modalOverlay}>
-          <Animated.View style={[
-            styles.quoteModal,
-            { opacity: fadeAnim },
-            isGoldQuote && styles.goldQuoteModal,
-            isGoldQuote && isPurchased && styles.goldQuoteModalLarge,
-          ]}>
-            <TouchableOpacity style={styles.closeButton} onPress={closeQuoteModal}>
-              <X size={24} color={Colors.gold} />
+        <View style={[styles.modalOverlay, isGoldFullScreen && styles.modalOverlayFull]}>
+          <Animated.View
+            style={[
+              styles.quoteModal,
+              { opacity: fadeAnim },
+              isGoldQuote && styles.goldQuoteModal,
+              isGoldFullScreen && styles.quoteModalFullScreen,
+              isGoldFullScreen && {
+                paddingTop: insets.top + 28,
+                paddingBottom: insets.bottom + 24,
+              },
+              !isGoldFullScreen && isGoldQuote && isPurchased && styles.goldQuoteModalLarge,
+            ]}
+          >
+            <TouchableOpacity
+              testID="quote-modal-close"
+              style={[styles.closeButton, isGoldFullScreen && styles.closeButtonFull]}
+              onPress={closeQuoteModal}
+              hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+              activeOpacity={0.75}
+            >
+              <X size={26} color={Colors.gold} />
             </TouchableOpacity>
 
             {isGoldQuote && (
@@ -610,6 +625,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+  modalOverlayFull: {
+    padding: 0,
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+    backgroundColor: Colors.overlay,
+  },
   quoteModal: {
     backgroundColor: Colors.backgroundDark,
     borderRadius: 20,
@@ -629,6 +650,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     borderRadius: 26,
   },
+  quoteModalFullScreen: {
+    flex: 1,
+    width: '100%',
+    maxWidth: undefined,
+    borderRadius: 0,
+    paddingHorizontal: 24,
+    justifyContent: 'center',
+  },
   winkGif: {
     width: 140,
     height: 140,
@@ -641,6 +670,11 @@ const styles = StyleSheet.create({
     right: 12,
     padding: 8,
     zIndex: 1,
+  },
+  closeButtonFull: {
+    top: 16,
+    right: 16,
+    padding: 12,
   },
   quoteDecorator: {
     flexDirection: 'row',
