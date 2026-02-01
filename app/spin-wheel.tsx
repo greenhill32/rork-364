@@ -125,7 +125,7 @@ export default function SpinWheelScreen() {
         }).start(() => {
           setShowSplashCeremony(false);
         });
-      }, 1500);
+      }, 3000);
     });
   };
 
