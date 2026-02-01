@@ -36,7 +36,8 @@ export const [AppProvider, useApp] = createContextHook(() => {
           AsyncStorage.getItem(STORAGE_KEYS.USED_POOL_B_INDICES),
           AsyncStorage.getItem(STORAGE_KEYS.LUCKY_DAY),
         ]);
-
+        // DEV: Set to true to test gold day with purchase
+        const DEV_FORCE_PURCHASED = true;
         if (purchased === 'true') setIsPurchased(true);
         if (taps) setTapCount(parseInt(taps, 10));
         if (usedA) setUsedPoolAIndices(JSON.parse(usedA));
