@@ -25,9 +25,9 @@ import { useApp } from '@/context/AppContext';
 
 // GitHub raw content URLs
 const TERMS_URL =
-  'https://rork-364-git-main-lee-manleys-projects.vercel.app/legal/terms.html';
+  'https://publicbucket3222.blob.core.windows.net/$web/364/terms.html';
 const PRIVACY_URL =
-  'https://rork-364-git-main-lee-manleys-projects.vercel.app/legal/privacy.html';
+  'https://publicbucket3222.blob.core.windows.net/$web/364/privacy.html';
 
 export default function Settings() {
   const insets = useSafeAreaInsets();
