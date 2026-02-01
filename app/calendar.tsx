@@ -137,7 +137,7 @@ export default function CalendarScreen() {
       fadeAnim.setValue(0);
       Animated.timing(fadeAnim, {
         toValue: 1,
-        duration: 400,
+        duration: isGold ? 220 : 320,
         useNativeDriver: true,
       }).start();
     }
@@ -335,9 +335,10 @@ export default function CalendarScreen() {
       >
         <View style={styles.modalOverlay}>
           <Animated.View style={[
-            styles.quoteModal, 
+            styles.quoteModal,
             { opacity: fadeAnim },
             isGoldQuote && styles.goldQuoteModal,
+            isGoldQuote && isPurchased && styles.goldQuoteModalLarge,
           ]}>
             <TouchableOpacity style={styles.closeButton} onPress={closeQuoteModal}>
               <X size={24} color={Colors.gold} />
@@ -622,11 +623,17 @@ const styles = StyleSheet.create({
     borderColor: Colors.gold,
     borderWidth: 2,
   },
+  goldQuoteModalLarge: {
+    maxWidth: 520,
+    paddingVertical: 40,
+    paddingHorizontal: 28,
+    borderRadius: 26,
+  },
   winkGif: {
-    width: 120,
-    height: 120,
+    width: 140,
+    height: 140,
     alignSelf: 'center',
-    marginBottom: 16,
+    marginBottom: 18,
   },
   closeButton: {
     position: 'absolute',
@@ -670,25 +677,27 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   goldQuoteText: {
-    fontSize: 22,
+    fontSize: 26,
     color: Colors.gold,
-    fontWeight: '600',
+    fontWeight: '700',
     fontStyle: 'normal',
+    lineHeight: 34,
   },
   dismissButton: {
     backgroundColor: Colors.gold,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 25,
+    paddingVertical: 16,
+    paddingHorizontal: 46,
+    borderRadius: 999,
     alignSelf: 'center',
-    marginTop: 20,
+    marginTop: 22,
+    minWidth: 180,
   },
   goldDismissButton: {
     backgroundColor: Colors.gold,
   },
   dismissButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: Colors.backgroundDark,
     letterSpacing: 1,
   },
