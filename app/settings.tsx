@@ -245,7 +245,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingBottom: 12,
+    paddingBottom: 20,
+    borderBottomWidth: 2,
     borderBottomColor: Colors.border,
   },
   headerRow: {
