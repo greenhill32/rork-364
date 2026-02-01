@@ -25,9 +25,9 @@ import { useApp } from '@/context/AppContext';
 
 // GitHub raw content URLs
 const TERMS_URL =
-  'https://raw.githubusercontent.com/greenhill32/rork-364/main/legal/terms.html';
+  'https://rork-364-git-main-lee-manleys-projects.vercel.app/legal/terms.html';
 const PRIVACY_URL =
-  'https://raw.githubusercontent.com/greenhill32/rork-364/main/legal/privacy.html';
+  'https://rork-364-git-main-lee-manleys-projects.vercel.app/legal/privacy.html';
 
 export default function Settings() {
   const insets = useSafeAreaInsets();
