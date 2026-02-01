@@ -106,7 +106,7 @@ export default function SpinWheelScreen() {
     fadeAnim.setValue(0);
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 500,
+      duration: 300,
       useNativeDriver: true,
     }).start(() => {
       // Show splash screen briefly
@@ -120,12 +120,12 @@ export default function SpinWheelScreen() {
         // Then fade out the overlay
         Animated.timing(fadeAnim, {
           toValue: 0,
-          duration: 900,
+          duration: 1400,
           useNativeDriver: true,
         }).start(() => {
           setShowSplashCeremony(false);
         });
-      }, 350);
+      }, 1500);
     });
   };
 
@@ -234,7 +234,7 @@ export default function SpinWheelScreen() {
       >
         {showSplashCeremony && (
           <Image
-            source={require('@/assets/images/364-splash.png')}
+            source={require('@/assets/images/curtains.png')}
             style={styles.splashImage}
             resizeMode="cover"
           />
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     alignSelf: 'center',
-    marginTop: 8,
+    marginTop: 2,
   },
   confirmButtonText: {
     fontSize: 18,

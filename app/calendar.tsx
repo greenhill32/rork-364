@@ -11,6 +11,7 @@ import {
   Platform,
   PanResponder,
   GestureResponderEvent,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -327,7 +328,14 @@ export default function CalendarScreen() {
             <TouchableOpacity style={styles.closeButton} onPress={closeQuoteModal}>
               <X size={24} color={Colors.gold} />
             </TouchableOpacity>
-            
+
+            {isGoldQuote && (
+              <Image
+                source={require('@/assets/images/wink.gif')}
+                style={styles.winkGif}
+              />
+            )}
+
             <View style={styles.quoteDecorator}>
               <View style={styles.decorLine} />
               <View style={[styles.sparkle, isGoldQuote && styles.goldSparkle]} />
@@ -584,6 +592,12 @@ const styles = StyleSheet.create({
   goldQuoteModal: {
     borderColor: Colors.gold,
     borderWidth: 2,
+  },
+  winkGif: {
+    width: 120,
+    height: 120,
+    alignSelf: 'center',
+    marginBottom: 16,
   },
   closeButton: {
     position: 'absolute',
