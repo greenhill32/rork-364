@@ -107,6 +107,8 @@ export default function Settings() {
           { paddingTop: insets.top + 14, paddingHorizontal: 16 },
         ]}
       >
+        <View style={styles.headerDividerLine} />
+
         <View style={styles.headerRow}>
           <View style={styles.headerSide}>
             <TouchableOpacity
@@ -127,11 +129,7 @@ export default function Settings() {
           <View style={styles.headerSide} />
         </View>
 
-        <View style={styles.headerDividerRow}>
-          <View style={styles.decorativeLine} />
-          <View style={styles.decorativeLineLong} />
-          <View style={styles.decorativeLine} />
-        </View>
+        <View style={styles.headerDividerLine} />
       </View>
 
       {/* Content */}
@@ -267,11 +265,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(227, 193, 126, 0.22)',
   },
+  headerDividerLine: {
+    height: 1,
+    backgroundColor: Colors.gold,
+    opacity: 0.4,
+    marginVertical: 10,
+    width: 60,
+    alignSelf: 'center',
+  },
   headerDividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 10,
+    marginVertical: 10,
     paddingHorizontal: 4,
   },
   decorativeLine: {
