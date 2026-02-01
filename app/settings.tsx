@@ -14,7 +14,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   ChevronLeft,
-  Settings as SettingsIcon,
   Trash2,
   RefreshCw,
 } from 'lucide-react-native';
@@ -56,6 +55,7 @@ export default function Settings() {
     try {
       await WebBrowser.openBrowserAsync(TERMS_URL);
     } catch (err) {
+      console.error('[Settings] Failed to open Terms of Service', err);
       Alert.alert('Error', 'Could not open Terms of Service');
     }
   }, [triggerHaptic]);
@@ -65,6 +65,7 @@ export default function Settings() {
     try {
       await WebBrowser.openBrowserAsync(PRIVACY_URL);
     } catch (err) {
+      console.error('[Settings] Failed to open Privacy Policy', err);
       Alert.alert('Error', 'Could not open Privacy Policy');
     }
   }, [triggerHaptic]);
@@ -103,20 +104,32 @@ export default function Settings() {
       <View
         style={[
           styles.header,
-          { paddingTop: insets.top + 20, paddingHorizontal: 20 },
+          { paddingTop: insets.top + 14, paddingHorizontal: 16 },
         ]}
       >
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleBack}
-          activeOpacity={0.7}
-        >
-          <ChevronLeft size={28} color={Colors.gold} />
-        </TouchableOpacity>
+        <View style={styles.headerRow}>
+          <View style={styles.headerSide}>
+            <TouchableOpacity
+              testID="settings-back"
+              style={styles.backButton}
+              onPress={handleBack}
+              activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <ChevronLeft size={34} color={Colors.gold} />
+            </TouchableOpacity>
+          </View>
 
-        <View style={styles.headerContent}>
+          <Text testID="settings-title" style={styles.headerTitle}>
+            Settings
+          </Text>
+
+          <View style={styles.headerSide} />
+        </View>
+
+        <View style={styles.headerDividerRow}>
           <View style={styles.decorativeLine} />
-          <Text style={styles.headerTitle}>Settings</Text>
+          <View style={styles.decorativeLineLong} />
           <View style={styles.decorativeLine} />
         </View>
       </View>
@@ -232,34 +245,57 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    alignItems: 'center',
-    paddingBottom: 20,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 20,
-    padding: 8,
-    zIndex: 10,
-  },
-  headerContent: {
-    alignItems: 'center',
+  headerRow: {
     width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 56,
+  },
+  headerSide: {
+    width: 56,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
+  backButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(227, 193, 126, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(227, 193, 126, 0.22)',
+  },
+  headerDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 10,
+    paddingHorizontal: 4,
   },
   decorativeLine: {
-    width: 60,
+    width: 18,
     height: 1,
     backgroundColor: Colors.gold,
-    opacity: 0.5,
-    marginVertical: 8,
+    opacity: 0.55,
+  },
+  decorativeLineLong: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.gold,
+    opacity: 0.12,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: '300',
     color: Colors.gold,
-    letterSpacing: 1,
+    letterSpacing: 0.8,
+    textAlign: 'center',
   },
   scrollView: {
     flex: 1,
