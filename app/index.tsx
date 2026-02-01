@@ -20,7 +20,7 @@ export default function SplashScreen() {
       <StatusBar style="light" />
       
       <Image
-        source={{ uri: 'https://pub-e001eb4506b145aa938b5d3badbff6a5.r2.dev/attachments/dw5cqqo9ifwkheb98ipzl' }}
+        source={{ uri: 'https://publicbucket3222.blob.core.windows.net/$web/364/364-splash.png' }}
         style={styles.backgroundImage}
         resizeMode="cover"
       />
