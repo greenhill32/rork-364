@@ -74,19 +74,8 @@ export default function CalendarScreen() {
   const shimmerAnim = useRef(new Animated.Value(0)).current;
   const gifFadeAnim = useRef(new Animated.Value(0)).current;
 
-  // Preload GIF on mount
+  // Start shimmer animation (runs continuously as fallback)
   useEffect(() => {
-    const preloadGif = async () => {
-      try {
-        await Asset.loadAsync(winkGifAsset);
-        setGifLoaded(true);
-      } catch (e) {
-        console.log('[Calendar] GIF preload failed, will load on demand');
-      }
-    };
-    preloadGif();
-
-    // Start shimmer animation (runs continuously as fallback)
     Animated.loop(
       Animated.sequence([
         Animated.timing(shimmerAnim, {
@@ -763,12 +752,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   goldWinkGif: {
-    width: 200, // Larger for full screen
-    height: 200,
+    width: 250,
+    height: 250,
   },
   gifContainer: {
-    width: 180,
-    height: 180,
+    width: 250,
+    height: 250,
     marginBottom: 30,
     position: 'relative',
   },
@@ -776,24 +765,24 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 300,
-    height: 300,
+    width: 250,
+    height: 250,
   },
   shimmerPlaceholder: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 180,
-    height: 180,
-    borderRadius: 90,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
     backgroundColor: Colors.gold,
     justifyContent: 'center',
     alignItems: 'center',
   },
   shimmerInner: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+    width: 220,
+    height: 220,
+    borderRadius: 110,
     backgroundColor: Colors.backgroundDark,
     justifyContent: 'center',
     alignItems: 'center',
