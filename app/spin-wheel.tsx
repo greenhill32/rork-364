@@ -102,31 +102,22 @@ export default function SpinWheelScreen() {
     };
     setLuckyDay(luckyDate);
 
-    // Fade out to purple
-    fadeAnim.setValue(0);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start(() => {
-      // Show splash screen briefly
-      setShowSplashCeremony(true);
+    // Show curtains immediately
+    fadeAnim.setValue(1);
+    setShowSplashCeremony(true);
 
-      // After 350ms, start fading and navigate
-      setTimeout(() => {
-        // Navigate while still at full opacity
-        router.replace('/calendar');
+    // After 3000ms, navigate and fade out
+    setTimeout(() => {
+      router.replace('/calendar');
 
-        // Then fade out the overlay
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 1400,
-          useNativeDriver: true,
-        }).start(() => {
-          setShowSplashCeremony(false);
-        });
-      }, 3000);
-    });
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 1400,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowSplashCeremony(false);
+      });
+    }, 3000);
   };
 
   const renderCalendarDays = () => {
