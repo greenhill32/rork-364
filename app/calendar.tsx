@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -18,10 +18,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ChevronLeft, ChevronRight, X, Lock, RotateCcw, Settings } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
+import { Asset } from 'expo-asset';
 import Colors from '@/constants/colors';
 import { useApp } from '@/context/AppContext';
 
-const { width } = Dimensions.get('window');
+// Preload the wink GIF asset
+const winkGifAsset = require('@/assets/images/wink.gif');
+
+const { width, height } = Dimensions.get('window');
 const DAY_SIZE = (width - 60) / 7;
 
 const MONTHS = [
@@ -45,6 +49,7 @@ export default function CalendarScreen() {
     isPurchased, 
     currentQuote, 
     remainingFreeTaps, 
+    allTimeSeenCount,
     handleTap, 
     purchase,
     setPaidForTesting,
@@ -63,8 +68,29 @@ export default function CalendarScreen() {
   const [showChangeLuckyDayModal, setShowChangeLuckyDayModal] = useState(false);
   const [isGoldQuote, setIsGoldQuote] = useState(false);
   const [visitedDays, setVisitedDays] = useState<Set<number>>(new Set());
+  const [gifLoaded, setGifLoaded] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const shimmerAnim = useRef(new Animated.Value(0)).current;
+  const gifFadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Start shimmer animation (runs continuously as fallback)
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, {
+          toValue: 1,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(shimmerAnim, {
+          toValue: 0,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   const triggerHaptic = useCallback(() => {
     if (Platform.OS !== 'web') {
@@ -132,13 +158,19 @@ export default function CalendarScreen() {
 
     if (result.success && result.quote) {
       setIsGoldQuote(result.isGold);
+      // Gold: show immediately (no animation delay)
+      // Regular: animate in
+      if (result.isGold) {
+        fadeAnim.setValue(1); // Instant for gold
+      } else {
+        fadeAnim.setValue(0);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 320,
+          useNativeDriver: true,
+        }).start();
+      }
       setShowQuoteModal(true);
-      fadeAnim.setValue(0);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 400,
-        useNativeDriver: true,
-      }).start();
     }
   };
 
@@ -168,6 +200,7 @@ export default function CalendarScreen() {
     setShowQuoteModal(false);
     setCurrentQuote(null);
     setIsGoldQuote(false);
+    gifFadeAnim.setValue(0); // Reset for next open
   };
 
   const renderCalendarDays = () => {
@@ -237,6 +270,9 @@ export default function CalendarScreen() {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>364</Text>
           <Text style={styles.headerSubtitle}>WAYS TO SAY NO</Text>
+          <Text style={styles.progressText} testID="quotes-progress">
+            {Math.min(364, Math.max(0, allTimeSeenCount))}/364
+          </Text>
         </View>
 
         <View style={styles.monthHeader}>
@@ -323,53 +359,139 @@ export default function CalendarScreen() {
         </View>
       </View>
 
+      {/* GOLD QUOTE MODAL - Full screen, no animation */}
       <Modal
-        visible={showQuoteModal}
+        visible={showQuoteModal && isGoldQuote}
+        transparent={false}
+        animationType="none"
+        onRequestClose={closeQuoteModal}
+      >
+        <View style={styles.goldFullScreenModal}>
+          <StatusBar style="light" />
+          
+          {/* Close button - top right */}
+          <TouchableOpacity
+            testID="quote-modal-close"
+            style={styles.goldCloseButton}
+            onPress={closeQuoteModal}
+            hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+            activeOpacity={0.75}
+          >
+            <X size={28} color={Colors.gold} />
+          </TouchableOpacity>
+
+          {/* Centered content */}
+          <View style={styles.goldContentContainer}>
+            
+            {/* GIF container with shimmer fallback */}
+            <View style={styles.gifContainer}>
+              {/* Shimmer placeholder - shows while GIF loads */}
+              <Animated.View 
+                style={[
+                  styles.shimmerPlaceholder,
+                  {
+                    opacity: shimmerAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [0.3, 0.8],
+                    }),
+                  },
+                ]}
+              >
+                <View style={styles.shimmerInner}>
+                  <Text style={styles.shimmerEmoji}>😈</Text>
+                </View>
+              </Animated.View>
+
+              {/* Actual GIF - fades in on load */}
+              <Animated.View style={[styles.gifWrapper, { opacity: gifFadeAnim }]}>
+                <Image
+                  source={winkGifAsset}
+                  style={styles.goldWinkGif}
+                  onLoad={() => {
+                    // Fade in quickly once loaded
+                    Animated.timing(gifFadeAnim, {
+                      toValue: 1,
+                      duration: 150,
+                      useNativeDriver: true,
+                    }).start();
+                  }}
+                />
+              </Animated.View>
+            </View>
+
+            <View style={styles.quoteDecorator}>
+              <View style={styles.decorLine} />
+              <View style={styles.goldSparkle} />
+              <View style={styles.decorLine} />
+            </View>
+            
+            <Text style={styles.goldFullScreenQuoteText}>
+              {currentQuote}
+            </Text>
+            
+            <View style={styles.quoteDecorator}>
+              <View style={styles.decorLine} />
+              <View style={styles.goldSparkle} />
+              <View style={styles.decorLine} />
+            </View>
+            
+            <TouchableOpacity 
+              style={styles.goldFullScreenDismissButton} 
+              onPress={closeQuoteModal}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.dismissButtonText}>😈</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* REGULAR QUOTE MODAL - Original card style */}
+      <Modal
+        visible={showQuoteModal && !isGoldQuote}
         transparent
         animationType="fade"
         onRequestClose={closeQuoteModal}
       >
         <View style={styles.modalOverlay}>
-          <Animated.View style={[
-            styles.quoteModal, 
-            { opacity: fadeAnim },
-            isGoldQuote && styles.goldQuoteModal,
-          ]}>
-            <TouchableOpacity style={styles.closeButton} onPress={closeQuoteModal}>
-              <X size={24} color={Colors.gold} />
+          <Animated.View
+            style={[
+              styles.quoteModal,
+              { opacity: fadeAnim },
+            ]}
+          >
+            <TouchableOpacity
+              testID="quote-modal-close"
+              style={styles.closeButton}
+              onPress={closeQuoteModal}
+              hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+              activeOpacity={0.75}
+            >
+              <X size={26} color={Colors.gold} />
             </TouchableOpacity>
-
-            {isGoldQuote && (
-              <Image
-                source={require('@/assets/images/wink.gif')}
-                style={styles.winkGif}
-              />
-            )}
 
             <View style={styles.quoteDecorator}>
               <View style={styles.decorLine} />
-              <View style={[styles.sparkle, isGoldQuote && styles.goldSparkle]} />
+              <View style={styles.sparkle} />
               <View style={styles.decorLine} />
             </View>
             
-            <Text style={[styles.quoteText, isGoldQuote && styles.goldQuoteText]}>
-              {isGoldQuote ? currentQuote : `"${currentQuote}"`}
+            <Text style={styles.quoteText}>
+              "{currentQuote}"
             </Text>
             
             <View style={styles.quoteDecorator}>
               <View style={styles.decorLine} />
-              <View style={[styles.sparkle, isGoldQuote && styles.goldSparkle]} />
+              <View style={styles.sparkle} />
               <View style={styles.decorLine} />
             </View>
             
             <TouchableOpacity 
-              style={[styles.dismissButton, isGoldQuote && styles.goldDismissButton]} 
+              style={styles.dismissButton} 
               onPress={closeQuoteModal}
               activeOpacity={0.8}
             >
-              <Text style={styles.dismissButtonText}>
-                {isGoldQuote ? '😈' : 'Noted'}
-              </Text>
+              <Text style={styles.dismissButtonText}>Noted</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>
@@ -485,6 +607,13 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     fontFamily: 'Didot',
   },
+  progressText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: Colors.gold,
+    opacity: 0.5,
+    letterSpacing: 1,
+  },
   monthHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -598,6 +727,89 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
   },
+
+  /* ========================================
+     GOLD FULL SCREEN MODAL STYLES
+     ======================================== */
+  goldFullScreenModal: {
+    flex: 1,
+    backgroundColor: Colors.backgroundDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  goldCloseButton: {
+    position: 'absolute',
+    top: 60, // Safe area padding - adjust if needed
+    right: 20,
+    padding: 12,
+    zIndex: 10,
+  },
+  goldContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+    width: '100%',
+  },
+  goldWinkGif: {
+    width: 250,
+    height: 250,
+  },
+  gifContainer: {
+    width: 250,
+    height: 250,
+    marginBottom: 30,
+    position: 'relative',
+  },
+  gifWrapper: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 250,
+    height: 250,
+  },
+  shimmerPlaceholder: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: Colors.gold,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shimmerInner: {
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: Colors.backgroundDark,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shimmerEmoji: {
+    fontSize: 64,
+  },
+  goldFullScreenQuoteText: {
+    fontSize: 32, // Bigger text for full screen
+    color: Colors.gold,
+    fontWeight: '700',
+    textAlign: 'center',
+    lineHeight: 44,
+  },
+  goldFullScreenDismissButton: {
+    backgroundColor: Colors.gold,
+    paddingVertical: 18,
+    paddingHorizontal: 60,
+    borderRadius: 999,
+    marginTop: 40,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+
+  /* ========================================
+     REGULAR QUOTE MODAL STYLES
+     ======================================== */
   quoteModal: {
     backgroundColor: Colors.backgroundDark,
     borderRadius: 20,
@@ -606,16 +818,6 @@ const styles = StyleSheet.create({
     maxWidth: 340,
     borderWidth: 1,
     borderColor: Colors.border,
-  },
-  goldQuoteModal: {
-    borderColor: Colors.gold,
-    borderWidth: 2,
-  },
-  winkGif: {
-    width: 120,
-    height: 120,
-    alignSelf: 'center',
-    marginBottom: 16,
   },
   closeButton: {
     position: 'absolute',
@@ -646,6 +848,9 @@ const styles = StyleSheet.create({
   goldSparkle: {
     width: 12,
     height: 12,
+    backgroundColor: Colors.gold,
+    transform: [{ rotate: '45deg' }],
+    marginHorizontal: 12,
     shadowColor: Colors.gold,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
@@ -658,28 +863,21 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     fontStyle: 'italic',
   },
-  goldQuoteText: {
-    fontSize: 22,
-    color: Colors.gold,
-    fontWeight: '600',
-    fontStyle: 'normal',
-  },
   dismissButton: {
     backgroundColor: Colors.gold,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    borderRadius: 25,
+    paddingVertical: 16,
+    paddingHorizontal: 46,
+    borderRadius: 999,
     alignSelf: 'center',
-    marginTop: 20,
-  },
-  goldDismissButton: {
-    backgroundColor: Colors.gold,
+    marginTop: 22,
+    minWidth: 180,
   },
   dismissButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: Colors.backgroundDark,
     letterSpacing: 1,
+    textAlign: 'center',
   },
   purchaseModal: {
     backgroundColor: Colors.backgroundDark,

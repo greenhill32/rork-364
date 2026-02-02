@@ -5,6 +5,7 @@ import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppProvider } from "@/context/AppContext";
 import Colors from "@/constants/colors";
+import { Asset } from 'expo-asset';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,13 +31,25 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   useEffect(() => {
-    SplashScreen.hideAsync();
+    const init = async () => {
+      try {
+        await Promise.race([
+          Asset.loadAsync(require('@/assets/images/wink.gif')),
+          new Promise(resolve => setTimeout(resolve, 2000)),
+        ]);
+      } catch (e) {
+        console.log('[Layout] GIF preload failed, shimmer fallback will handle it');
+      } finally {
+        await SplashScreen.hideAsync();
+      }
+    };
+    init();
   }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <AppProvider>
+        <AppProvider key="app-context-v2">
           <RootLayoutNav />
         </AppProvider>
       </GestureHandlerRootView>

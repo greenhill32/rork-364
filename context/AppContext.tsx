@@ -16,6 +16,7 @@ const STORAGE_KEYS = {
   USED_POOL_A_INDICES: 'used_pool_a_indices',
   USED_POOL_B_INDICES: 'used_pool_b_indices',
   LUCKY_DAY: 'lucky_day',
+  ALL_TIME_SEEN_QUOTES: 'all_time_seen_quotes',
 };
 
 export const [AppProvider, useApp] = createContextHook(() => {
@@ -24,6 +25,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
   const [tapCount, setTapCount] = useState(0);
   const [usedPoolAIndices, setUsedPoolAIndices] = useState<number[]>([]);
   const [usedPoolBIndices, setUsedPoolBIndices] = useState<number[]>([]);
+  const [allTimeSeenQuotes, setAllTimeSeenQuotes] = useState<string[]>([]);
   const [currentQuote, setCurrentQuote] = useState<string | null>(null);
   const [luckyDay, setLuckyDayState] = useState<LuckyDay | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,13 +33,14 @@ export const [AppProvider, useApp] = createContextHook(() => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [purchased, devPurchased, taps, usedA, usedB, storedLuckyDay] = await Promise.all([
+        const [purchased, devPurchased, taps, usedA, usedB, storedLuckyDay, storedAllTimeSeen] = await Promise.all([
           AsyncStorage.getItem(STORAGE_KEYS.PURCHASED),
           AsyncStorage.getItem(STORAGE_KEYS.DEV_FORCE_PURCHASED),
           AsyncStorage.getItem(STORAGE_KEYS.TAP_COUNT),
           AsyncStorage.getItem(STORAGE_KEYS.USED_POOL_A_INDICES),
           AsyncStorage.getItem(STORAGE_KEYS.USED_POOL_B_INDICES),
           AsyncStorage.getItem(STORAGE_KEYS.LUCKY_DAY),
+          AsyncStorage.getItem(STORAGE_KEYS.ALL_TIME_SEEN_QUOTES),
         ]);
 
         const isDevPurchased = devPurchased === 'true';
@@ -49,6 +52,12 @@ export const [AppProvider, useApp] = createContextHook(() => {
         if (usedA) setUsedPoolAIndices(JSON.parse(usedA));
         if (usedB) setUsedPoolBIndices(JSON.parse(usedB));
         if (storedLuckyDay) setLuckyDayState(JSON.parse(storedLuckyDay));
+        if (storedAllTimeSeen) {
+          const parsed = JSON.parse(storedAllTimeSeen) as unknown;
+          if (Array.isArray(parsed)) {
+            setAllTimeSeenQuotes(parsed.filter((q): q is string => typeof q === 'string'));
+          }
+        }
       } catch (error) {
         console.log('Error loading app data:', error);
       } finally {
@@ -85,14 +94,26 @@ export const [AppProvider, useApp] = createContextHook(() => {
     return Math.max(0, FREE_TAP_LIMIT - tapCount);
   }, [tapCount]);
 
+  const trackAllTimeSeenQuote = useCallback((quote: string) => {
+    setAllTimeSeenQuotes((prev) => {
+      if (prev.includes(quote)) return prev;
+      const next = [...prev, quote];
+      AsyncStorage.setItem(STORAGE_KEYS.ALL_TIME_SEEN_QUOTES, JSON.stringify(next)).catch((e) => {
+        console.log('[AppContext] Failed to persist all-time seen quotes', e);
+      });
+      return next;
+    });
+  }, []);
+
   const getRandomQuote = useCallback((isGoldDay: boolean = false) => {
     if (isGoldDay) {
+      trackAllTimeSeenQuote(GOLD_QUOTE);
       return GOLD_QUOTE;
     }
 
     const pool = isEntitled ? POOL_B_QUOTES : POOL_A_QUOTES;
     const usedIndices = isEntitled ? usedPoolBIndices : usedPoolAIndices;
-    
+
     const availableIndices = pool
       .map((_, index) => index)
       .filter((index) => !usedIndices.includes(index));
@@ -100,12 +121,14 @@ export const [AppProvider, useApp] = createContextHook(() => {
     if (availableIndices.length === 0) {
       if (isEntitled) {
         setUsedPoolBIndices([]);
-        AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_B_INDICES, JSON.stringify([]));
+        AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_B_INDICES, JSON.stringify([])).catch(() => undefined);
       } else {
         setUsedPoolAIndices([]);
-        AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_A_INDICES, JSON.stringify([]));
+        AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_A_INDICES, JSON.stringify([])).catch(() => undefined);
       }
-      return pool[Math.floor(Math.random() * pool.length)];
+      const quote = pool[Math.floor(Math.random() * pool.length)];
+      trackAllTimeSeenQuote(quote);
+      return quote;
     }
 
     const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
@@ -113,14 +136,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
 
     if (isEntitled) {
       setUsedPoolBIndices(newUsedIndices);
-      AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_B_INDICES, JSON.stringify(newUsedIndices));
+      AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_B_INDICES, JSON.stringify(newUsedIndices)).catch(() => undefined);
     } else {
       setUsedPoolAIndices(newUsedIndices);
-      AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_A_INDICES, JSON.stringify(newUsedIndices));
+      AsyncStorage.setItem(STORAGE_KEYS.USED_POOL_A_INDICES, JSON.stringify(newUsedIndices)).catch(() => undefined);
     }
 
-    return pool[randomIndex];
-  }, [isEntitled, usedPoolAIndices, usedPoolBIndices]);
+    const quote = pool[randomIndex];
+    trackAllTimeSeenQuote(quote);
+    return quote;
+  }, [isEntitled, trackAllTimeSeenQuote, usedPoolAIndices, usedPoolBIndices]);
 
   const handleTap = useCallback((isGoldDay: boolean = false) => {
     if (isGoldDay) {
@@ -164,6 +189,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     setTapCount(0);
     setUsedPoolAIndices([]);
     setUsedPoolBIndices([]);
+    setAllTimeSeenQuotes([]);
     setCurrentQuote(null);
     setLuckyDayState(null);
     await Promise.all([
@@ -173,8 +199,13 @@ export const [AppProvider, useApp] = createContextHook(() => {
       AsyncStorage.removeItem(STORAGE_KEYS.USED_POOL_A_INDICES),
       AsyncStorage.removeItem(STORAGE_KEYS.USED_POOL_B_INDICES),
       AsyncStorage.removeItem(STORAGE_KEYS.LUCKY_DAY),
+      AsyncStorage.removeItem(STORAGE_KEYS.ALL_TIME_SEEN_QUOTES),
     ]);
   }, []);
+
+  const allTimeSeenCount = useMemo(() => {
+    return new Set(allTimeSeenQuotes).size;
+  }, [allTimeSeenQuotes]);
 
   return {
     isPurchased: isEntitled,
@@ -186,6 +217,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     remainingFreeTaps,
     isLoading,
     luckyDay,
+    allTimeSeenCount,
     handleTap,
     purchase,
     setPaidForTesting,
