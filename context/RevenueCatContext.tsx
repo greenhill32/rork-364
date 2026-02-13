@@ -111,16 +111,17 @@ export const [RevenueCatProvider, useRevenueCat] = createContextHook(() => {
     }
   }, []);
 
-  const purchasePackage = useCallback(async (pkg: PurchasesPackage) => {
+  const purchasePackage = useCallback(async (pkg: PurchasesPackage): Promise<{ success: boolean; customerInfo?: CustomerInfo; error?: string; userCancelled?: boolean }> => {
     if (Platform.OS === 'web') {
       console.log('[RevenueCat] Purchase not available on web');
       return { success: false, error: 'Not available on web' };
     }
 
+    console.log('[RevenueCat] 🛒 Setting isPurchasing to true');
     setState(prev => ({ ...prev, isPurchasing: true, error: null }));
     
     try {
-      console.log('[RevenueCat] Purchasing package:', pkg.identifier);
+      console.log('[RevenueCat] 📦 Calling Purchases.purchasePackage for:', pkg.identifier);
       
       const { customerInfo } = await Purchases.purchasePackage(pkg);
       
@@ -130,17 +131,26 @@ export const [RevenueCatProvider, useRevenueCat] = createContextHook(() => {
         isPremium: !!customerInfo.entitlements.active.premium,
       });
 
+      console.log('[RevenueCat] 📝 Updating state with new customer info');
       setState(prev => ({
         ...prev,
         customerInfo,
         isPurchasing: false,
       }));
 
+      console.log('[RevenueCat] 🎉 Returning success=true');
       return { success: true, customerInfo };
     } catch (error: any) {
       console.error('[RevenueCat] ❌ Purchase failed:', error);
+      console.error('[RevenueCat] Error details:', {
+        message: error.message,
+        code: error.code,
+        userCancelled: error.userCancelled,
+      });
       
       const isUserCancelled = error.userCancelled || error.code === '1';
+      
+      console.log('[RevenueCat] User cancelled?', isUserCancelled);
       
       setState(prev => ({
         ...prev,

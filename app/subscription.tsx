@@ -66,13 +66,21 @@ export default function Subscription() {
   }, [triggerHaptic]);
 
   const handlePurchase = useCallback(async () => {
-    if (!selectedPackage) return;
+    if (!selectedPackage) {
+      console.log('[Subscription] No package selected');
+      return;
+    }
     
+    console.log('[Subscription] 🛒 Starting purchase for:', selectedPackage.identifier);
     triggerHaptic();
 
     const result = await purchasePackage(selectedPackage);
     
+    console.log('[Subscription] Purchase result:', result);
+    
     if (result.success) {
+      console.log('[Subscription] ✅ Purchase successful! Showing success modal');
+      
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
@@ -91,7 +99,10 @@ export default function Subscription() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         }
       }, 300);
-    } else if (result.error && !result.userCancelled) {
+    } else if (result.userCancelled) {
+      console.log('[Subscription] ⚠️ User cancelled purchase');
+    } else if (result.error) {
+      console.log('[Subscription] ❌ Purchase failed:', result.error);
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
