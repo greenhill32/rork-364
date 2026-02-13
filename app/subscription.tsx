@@ -76,7 +76,7 @@ export default function Subscription() {
 
     const result = await purchasePackage(selectedPackage);
     
-    console.log('[Subscription] Purchase result:', result);
+    console.log('[Subscription] Purchase result:', JSON.stringify(result));
     
     if (result.success) {
       console.log('[Subscription] ✅ Purchase successful! Showing success modal');
@@ -84,6 +84,21 @@ export default function Subscription() {
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
+      
+      Alert.alert(
+        '🎉 Premium Unlocked!',
+        'You now have full access to all 364 premium quotes and features.',
+        [
+          {
+            text: 'Start Exploring',
+            onPress: () => {
+              console.log('[Subscription] User dismissed success alert, going back');
+              router.back();
+            },
+          },
+        ],
+        { cancelable: false }
+      );
       
       setShowSuccessModal(true);
       
@@ -101,6 +116,7 @@ export default function Subscription() {
       }, 300);
     } else if (result.userCancelled) {
       console.log('[Subscription] ⚠️ User cancelled purchase');
+      Alert.alert('Purchase Cancelled', 'You can subscribe anytime to unlock premium features.');
     } else if (result.error) {
       console.log('[Subscription] ❌ Purchase failed:', result.error);
       if (Platform.OS !== 'web') {
