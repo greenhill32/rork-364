@@ -16,6 +16,7 @@ import {
   ChevronLeft,
   Trash2,
   RefreshCw,
+  Database,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
@@ -111,6 +112,12 @@ export default function Settings() {
     setShowDeleteModal(false);
   }, [triggerHaptic]);
 
+  const handleClearStorage = useCallback(() => {
+    triggerHeavyHaptic();
+    resetForTesting();
+    Alert.alert('Success', 'Local storage cleared successfully');
+  }, [triggerHeavyHaptic, resetForTesting]);
+
   return (
     <View style={[styles.container, { backgroundColor: Colors.background }]}>
       <StatusBar style="light" />
@@ -186,6 +193,23 @@ export default function Settings() {
               style={{ marginRight: 10 }}
             />
             <Text style={styles.buttonTextPrimary}>Delete Account</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Developer Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Developer</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleClearStorage}
+            activeOpacity={0.7}
+          >
+            <Database
+              size={18}
+              color={Colors.backgroundDark}
+              style={{ marginRight: 10 }}
+            />
+            <Text style={styles.buttonTextPrimary}>Clear Local Storage</Text>
           </TouchableOpacity>
         </View>
 
