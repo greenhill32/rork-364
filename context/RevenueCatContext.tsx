@@ -8,7 +8,7 @@ import Purchases, {
   LOG_LEVEL 
 } from 'react-native-purchases';
 
-const REVENUECAT_API_KEY = 'test_nBATQtneaacwTUNBNNxxxxxxxxxx';
+const REVENUECAT_API_KEY = 'test_nBATQtnaacwTUNBNNBapyAtKVDB';
 
 interface RevenueCatState {
   isInitialized: boolean;
