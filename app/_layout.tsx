@@ -4,6 +4,7 @@ import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AppProvider } from "@/context/AppContext";
+import { RevenueCatProvider } from "@/context/RevenueCatContext";
 import Colors from "@/constants/colors";
 import { Asset } from 'expo-asset';
 
@@ -25,6 +26,7 @@ function RootLayoutNav() {
       <Stack.Screen name="spin-wheel" />
       <Stack.Screen name="calendar" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="subscription" />
     </Stack>
   );
 }
@@ -49,9 +51,11 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <AppProvider key="app-context-v2">
-          <RootLayoutNav />
-        </AppProvider>
+        <RevenueCatProvider>
+          <AppProvider key="app-context-v2">
+            <RootLayoutNav />
+          </AppProvider>
+        </RevenueCatProvider>
       </GestureHandlerRootView>
     </QueryClientProvider>
   );

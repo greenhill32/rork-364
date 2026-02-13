@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { POOL_A_QUOTES, POOL_B_QUOTES, GOLD_QUOTE, FREE_TAP_LIMIT } from '@/data/quotes';
+import { useRevenueCat } from '@/context/RevenueCatContext';
 
 export interface LuckyDay {
   month: number;
@@ -20,6 +21,7 @@ const STORAGE_KEYS = {
 };
 
 export const [AppProvider, useApp] = createContextHook(() => {
+  const { hasActiveEntitlement, customerInfo } = useRevenueCat();
   const [isPurchased, setIsPurchased] = useState(false);
   const [devForcePurchased, setDevForcePurchased] = useState(false);
   const [tapCount, setTapCount] = useState(0);
@@ -67,6 +69,15 @@ export const [AppProvider, useApp] = createContextHook(() => {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const syncRevenueCat = hasActiveEntitlement('premium');
+    console.log('[AppContext] RevenueCat sync:', { syncRevenueCat, customerInfo: !!customerInfo });
+    if (syncRevenueCat && !isPurchased) {
+      setIsPurchased(true);
+      AsyncStorage.setItem(STORAGE_KEYS.PURCHASED, 'true').catch(() => undefined);
+    }
+  }, [customerInfo, hasActiveEntitlement, isPurchased]);
+
   const setLuckyDay = useCallback(async (day: LuckyDay) => {
     setLuckyDayState(day);
     await AsyncStorage.setItem(STORAGE_KEYS.LUCKY_DAY, JSON.stringify(day));
@@ -83,8 +94,9 @@ export const [AppProvider, useApp] = createContextHook(() => {
   }, [luckyDay]);
 
   const isEntitled = useMemo(() => {
-    return isPurchased || devForcePurchased;
-  }, [isPurchased, devForcePurchased]);
+    const revenueCatActive = hasActiveEntitlement('premium');
+    return isPurchased || devForcePurchased || revenueCatActive;
+  }, [isPurchased, devForcePurchased, hasActiveEntitlement]);
 
   const canGetFreeQuote = useMemo(() => {
     return !isEntitled && tapCount < FREE_TAP_LIMIT;

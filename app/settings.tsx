@@ -21,6 +21,7 @@ import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import Colors from '@/constants/colors';
 import { useApp } from '@/context/AppContext';
+import { useRevenueCat } from '@/context/RevenueCatContext';
 
 // GitHub raw content URLs
 const TERMS_URL =
@@ -31,6 +32,7 @@ const PRIVACY_URL =
 export default function Settings() {
   const insets = useSafeAreaInsets();
   const { resetForTesting, isPurchased } = useApp();
+  const { restorePurchases, isRestoring } = useRevenueCat();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const triggerHaptic = useCallback(() => {
@@ -82,13 +84,26 @@ export default function Settings() {
     router.push('/');
   }, [triggerHeavyHaptic, resetForTesting]);
 
-  const handleRestorePurchase = useCallback(() => {
+  const handleRestorePurchase = useCallback(async () => {
     triggerHaptic();
-    Alert.alert(
-      'Restore Purchase',
-      'Restore purchases will be available once in-app purchases are integrated.',
-      [{ text: 'OK' }]
-    );
+    
+    const result = await restorePurchases();
+    
+    if (result.success) {
+      const hasActive = result.customerInfo?.entitlements.active?.premium;
+      if (hasActive) {
+        Alert.alert('Success', 'Your purchases have been restored!');
+      } else {
+        Alert.alert('No Purchases Found', 'No active subscriptions were found.');
+      }
+    } else {
+      Alert.alert('Restore Failed', result.error || 'Could not restore purchases');
+    }
+  }, [triggerHaptic, restorePurchases]);
+
+  const handleSubscribe = useCallback(() => {
+    triggerHaptic();
+    router.push('/subscription');
   }, [triggerHaptic]);
 
   const handleCancelDelete = useCallback(() => {
@@ -176,10 +191,20 @@ export default function Settings() {
 
         {/* Purchase Section */}
         <View style={[styles.section, styles.lastSection]}>
-          <Text style={styles.sectionTitle}>Purchase</Text>
+          <Text style={styles.sectionTitle}>Premium</Text>
+          {!isPurchased && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSubscribe}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.buttonTextPrimary}>Subscribe to Premium</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
-            style={styles.button}
+            style={[styles.button, isRestoring && styles.buttonDisabled]}
             onPress={handleRestorePurchase}
+            disabled={isRestoring}
             activeOpacity={0.7}
           >
             <RefreshCw
@@ -187,15 +212,17 @@ export default function Settings() {
               color={Colors.backgroundDark}
               style={{ marginRight: 10 }}
             />
-            <Text style={styles.buttonTextPrimary}>Restore Purchase</Text>
+            <Text style={styles.buttonTextPrimary}>
+              {isRestoring ? 'Restoring...' : 'Restore Purchase'}
+            </Text>
           </TouchableOpacity>
           {!isPurchased && (
             <Text style={styles.statusText}>
-              Tap the button above to restore your premium access
+              Already subscribed? Restore your premium access
             </Text>
           )}
           {isPurchased && (
-            <Text style={styles.statusTextPurchased}>Premium Active</Text>
+            <Text style={styles.statusTextPurchased}>✓ Premium Active</Text>
           )}
         </View>
       </ScrollView>
@@ -362,6 +389,9 @@ const styles = StyleSheet.create({
   },
   dangerButton: {
     backgroundColor: Colors.gold,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   statusText: {
     fontSize: 13,
