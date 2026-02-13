@@ -69,17 +69,27 @@ export default function Subscription() {
     const result = await purchasePackage(selectedPackage);
     
     if (result.success) {
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+      
       Alert.alert(
-        'Success!',
-        'Your premium subscription is now active.',
+        '🎉 Purchase Successful!',
+        'You now have premium access to all quotes and features. Enjoy!',
         [
           {
-            text: 'OK',
-            onPress: () => router.back(),
+            text: 'Start Exploring',
+            onPress: () => {
+              router.back();
+            },
+            style: 'default',
           },
         ]
       );
     } else if (result.error && !result.userCancelled) {
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
       Alert.alert('Purchase Failed', result.error);
     }
   }, [selectedPackage, purchasePackage, triggerHaptic]);

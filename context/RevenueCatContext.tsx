@@ -124,9 +124,10 @@ export const [RevenueCatProvider, useRevenueCat] = createContextHook(() => {
       
       const { customerInfo } = await Purchases.purchasePackage(pkg);
       
-      console.log('[RevenueCat] Purchase successful:', {
+      console.log('[RevenueCat] ✅ Purchase successful!', {
         activeSubscriptions: customerInfo.activeSubscriptions,
         entitlements: Object.keys(customerInfo.entitlements.active),
+        isPremium: !!customerInfo.entitlements.active.premium,
       });
 
       setState(prev => ({
@@ -137,7 +138,7 @@ export const [RevenueCatProvider, useRevenueCat] = createContextHook(() => {
 
       return { success: true, customerInfo };
     } catch (error: any) {
-      console.error('[RevenueCat] Purchase failed:', error);
+      console.error('[RevenueCat] ❌ Purchase failed:', error);
       
       const isUserCancelled = error.userCancelled || error.code === '1';
       

@@ -73,6 +73,7 @@ export const [AppProvider, useApp] = createContextHook(() => {
     const syncRevenueCat = hasActiveEntitlement('premium');
     console.log('[AppContext] RevenueCat sync:', { syncRevenueCat, customerInfo: !!customerInfo });
     if (syncRevenueCat && !isPurchased) {
+      console.log('[AppContext] ✅ Premium unlocked via RevenueCat!');
       setIsPurchased(true);
       AsyncStorage.setItem(STORAGE_KEYS.PURCHASED, 'true').catch(() => undefined);
     }
