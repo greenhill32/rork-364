@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Modal,
+  Animated,
 } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -36,6 +38,8 @@ export default function Subscription() {
   } = useRevenueCat();
 
   const [selectedPackage, setSelectedPackage] = useState<PurchasesPackage | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successScale] = useState(new Animated.Value(0));
   const isPremium = hasActiveEntitlement('premium');
 
   useEffect(() => {
@@ -73,26 +77,27 @@ export default function Subscription() {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
       
-      Alert.alert(
-        '🎉 Purchase Successful!',
-        'You now have premium access to all quotes and features. Enjoy!',
-        [
-          {
-            text: 'Start Exploring',
-            onPress: () => {
-              router.back();
-            },
-            style: 'default',
-          },
-        ]
-      );
+      setShowSuccessModal(true);
+      
+      Animated.spring(successScale, {
+        toValue: 1,
+        useNativeDriver: true,
+        tension: 50,
+        friction: 7,
+      }).start();
+      
+      setTimeout(() => {
+        if (Platform.OS !== 'web') {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
+      }, 300);
     } else if (result.error && !result.userCancelled) {
       if (Platform.OS !== 'web') {
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
       Alert.alert('Purchase Failed', result.error);
     }
-  }, [selectedPackage, purchasePackage, triggerHaptic]);
+  }, [selectedPackage, purchasePackage, triggerHaptic, successScale]);
 
   const handlePackageSelect = useCallback((pkg: PurchasesPackage) => {
     triggerHaptic();
@@ -250,6 +255,14 @@ export default function Subscription() {
     );
   };
 
+  const handleSuccessContinue = useCallback(() => {
+    triggerHaptic();
+    setShowSuccessModal(false);
+    setTimeout(() => {
+      router.back();
+    }, 200);
+  }, [triggerHaptic]);
+
   return (
     <View style={[styles.container, { backgroundColor: Colors.background }]}>
       <StatusBar style="light" />
@@ -295,6 +308,46 @@ export default function Subscription() {
       >
         {renderContent()}
       </ScrollView>
+
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+      >
+        <View style={styles.successModalOverlay}>
+          <Animated.View
+            style={[
+              styles.successModalContent,
+              {
+                transform: [{ scale: successScale }],
+              },
+            ]}
+          >
+            <View style={styles.successIconContainer}>
+              <Sparkles size={80} color={Colors.gold} />
+            </View>
+            
+            <Text style={styles.successTitle}>🎉 Premium Unlocked!</Text>
+            <Text style={styles.successMessage}>
+              You now have full access to all 364 premium quotes and features.
+            </Text>
+            
+            <View style={styles.successBadge}>
+              <Check size={24} color={Colors.backgroundDark} />
+              <Text style={styles.successBadgeText}>Premium Active</Text>
+            </View>
+            
+            <TouchableOpacity
+              style={styles.successButton}
+              onPress={handleSuccessContinue}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.successButtonText}>Start Exploring</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -518,5 +571,81 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.backgroundDark,
+  },
+  successModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  successModalContent: {
+    backgroundColor: Colors.backgroundDark,
+    borderRadius: 30,
+    padding: 40,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 2,
+    borderColor: Colors.gold,
+  },
+  successIconContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(227, 193, 126, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    borderWidth: 3,
+    borderColor: Colors.gold,
+  },
+  successTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: Colors.gold,
+    marginBottom: 16,
+    textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  successMessage: {
+    fontSize: 17,
+    color: Colors.cream,
+    textAlign: 'center',
+    lineHeight: 26,
+    marginBottom: 28,
+    opacity: 0.9,
+  },
+  successBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.gold,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
+    marginBottom: 28,
+  },
+  successBadgeText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.backgroundDark,
+    marginLeft: 8,
+    letterSpacing: 0.5,
+  },
+  successButton: {
+    backgroundColor: 'rgba(227, 193, 126, 0.15)',
+    paddingVertical: 16,
+    paddingHorizontal: 40,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: Colors.gold,
+    minWidth: 200,
+  },
+  successButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.gold,
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
 });
