@@ -64,11 +64,16 @@ export const [RevenueCatProvider, useRevenueCat] = createContextHook(() => {
       }));
     } catch (error) {
       console.error('[RevenueCat] Initialization failed:', error);
-      setState(prev => ({
-        ...prev,
+      setState({
         isInitialized: true,
+        offerings: null,
+        currentOffering: null,
+        customerInfo: null,
+        isLoadingOfferings: false,
+        isPurchasing: false,
+        isRestoring: false,
         error: error instanceof Error ? error.message : 'Failed to initialize',
-      }));
+      });
     }
   }, []);
 
