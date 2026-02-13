@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Alert } from 'react-native';
 import { POOL_A_QUOTES, POOL_B_QUOTES, GOLD_QUOTE, FREE_TAP_LIMIT } from '@/data/quotes';
 import { useRevenueCat } from '@/context/RevenueCatContext';
 
@@ -184,9 +185,16 @@ export const [AppProvider, useApp] = createContextHook(() => {
   }, [isEntitled, tapCount, getRandomQuote]);
 
   const purchase = useCallback(async () => {
-    console.log('[AppContext] purchase()');
+    console.log('[AppContext] purchase() - Setting purchased state');
     setIsPurchased(true);
     await AsyncStorage.setItem(STORAGE_KEYS.PURCHASED, 'true');
+    console.log('[AppContext] ✅ Purchase state saved!');
+    
+    Alert.alert(
+      '🎉 Success!',
+      'Premium access unlocked! You now have full access to all quotes.',
+      [{ text: 'Awesome!', style: 'default' }]
+    );
   }, []);
 
   const setPaidForTesting = useCallback(async (paid: boolean) => {
